@@ -1,13 +1,13 @@
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
+import json
+from pathlib import Path
 
 import joblib
-import json
-import yaml
 import pandas as pd
-from pathlib import Path
+import yaml
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, f1_score, roc_auc_score
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 
 def train():

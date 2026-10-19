@@ -1,8 +1,8 @@
-from sklearn.datasets import load_breast_cancer
-from sklearn.model_selection import train_test_split
+from pathlib import Path
 
 import yaml
-from pathlib import Path
+from sklearn.datasets import load_breast_cancer
+from sklearn.model_selection import train_test_split
 
 
 def prepare_data():
