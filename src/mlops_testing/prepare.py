@@ -29,11 +29,11 @@ def prepare_data(params: dict, data_dir: Path) -> None:
     data_dir.mkdir(parents=True, exist_ok=True)
 
     df = load_breast_cancer(as_frame=True).frame
-    df.to_csv(data_dir / "raw.csv", index=False)
+    df.to_csv(data_dir / "raw.csv", index=False, lineterminator="\n")
 
     train_df, test_df = split_data(df, seed=params["seed"], **params["split"])
-    train_df.to_csv(data_dir / "train.csv", index=False)
-    test_df.to_csv(data_dir / "test.csv", index=False)
+    train_df.to_csv(data_dir / "train.csv", index=False, lineterminator="\n")
+    test_df.to_csv(data_dir / "test.csv", index=False, lineterminator="\n")
 
 
 if __name__ == "__main__":

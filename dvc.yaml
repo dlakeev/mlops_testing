@@ -1,0 +1,24 @@
+stages:
+  prepare:
+    cmd: python -m mlops_testing.prepare
+    deps:
+      - src/mlops_testing/prepare.py
+    params:
+      - seed
+      - split
+    outs:
+      - data
+  train:
+    cmd: python -m mlops_testing.train
+    deps:
+      - src/mlops_testing/train.py
+      - data/train.csv
+      - data/test.csv
+    params:
+      - pipeline
+      - seed
+    outs:
+      - models/model.joblib
+    metrics:
+      - metrics/metrics.json:
+          cache: false

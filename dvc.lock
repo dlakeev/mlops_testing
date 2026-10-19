@@ -1,0 +1,53 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python -m mlops_testing.prepare
+    deps:
+    - path: src/mlops_testing/prepare.py
+      hash: md5
+      md5: 330256b8639b0a0cc79319551297e957
+      size: 1289
+    params:
+      params.yaml:
+        seed: 42
+        split:
+          test_size: 0.2
+          stratify: true
+          shuffle: true
+    outs:
+    - path: data
+      hash: md5
+      md5: b796fdf33dbd364fc71aa84cb01b7409.dir
+      size: 243262
+      nfiles: 3
+  train:
+    cmd: python -m mlops_testing.train
+    deps:
+    - path: data/test.csv
+      hash: md5
+      md5: a0864871521c5b0a3859dc0e54ccbc29
+      size: 24681
+    - path: data/train.csv
+      hash: md5
+      md5: 7bab774b027c20cb0c5d906f7b085507
+      size: 97196
+    - path: src/mlops_testing/train.py
+      hash: md5
+      md5: 6a139f05f23005ab779840ffd14b9095
+      size: 2078
+    params:
+      params.yaml:
+        pipeline:
+          scaler__with_mean: true
+          scaler__with_std: true
+          model__max_iter: 100
+        seed: 42
+    outs:
+    - path: metrics/metrics.json
+      hash: md5
+      md5: 497991da3852324727cea251993da387
+      size: 104
+    - path: models/model.joblib
+      hash: md5
+      md5: 44dfef9ce9dc6fa3d103610e7a2ae077
+      size: 3073
