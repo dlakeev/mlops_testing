@@ -1,0 +1,19 @@
+[project]
+name = "mlops-testing"
+version = "0.1.0"
+description = "MLOps testing project"
+readme = "README.md"
+authors = [
+    { name = "dlakeev"}
+]
+requires-python = ">=3.12"
+dependencies = [
+    "joblib>=1.6.0",
+    "pandas>=3.0.6",
+    "pyyaml>=6.0.3",
+    "scikit-learn>=1.9.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.13.1,<0.14.0"]
+build-backend = "uv_build"
