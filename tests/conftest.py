@@ -7,3 +7,4 @@ def isolated_mlflow(tmp_path, monkeypatch):
     monkeypatch.setenv(
         "MLFLOW_TRACKING_URI", f"sqlite:///{(tmp_path / 'mlflow.db').as_posix()}"
     )
+    monkeypatch.chdir(tmp_path)
