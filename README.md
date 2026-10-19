@@ -5,10 +5,33 @@
 2. `uv run pre-commit install` — install git hooks (once after cloning).
    Hooks live in `.git/hooks/`, which is not versioned, so every clone needs this step.
 
-## Running the project
-From the project root:
-1. `uv run python -m mlops_testing.prepare` — prepare the data.
-2. `uv run python -m mlops_testing.train` — train the model and collect metrics.
+## Running the pipeline
+The pipeline is managed by [DVC](https://dvc.org/) and described in `dvc.yaml`:
+`prepare` (load and split data) → `train` (train the model and compute metrics).
+
+Run the whole pipeline from the project root:
+```bash
+uv run dvc repro
+```
+DVC re-runs only the stages whose code, data or parameters changed
+and records the exact state of every input and output in `dvc.lock`.
+
+Hyperparameters live in `params.yaml`: change them there, not in the code.
+
+After the pipeline changes, commit `dvc.lock` and `metrics/metrics.json`
+together with the code, so every commit points to its own data, model and metrics.
+
+### Metrics
+- `uv run dvc metrics show` — show current metrics.
+- `uv run dvc metrics diff` — compare metrics with the last commit.
+- `uv run dvc params diff` — compare parameters with the last commit.
+
+### Running a single stage manually (debugging only)
+```bash
+uv run python -m mlops_testing.prepare
+uv run python -m mlops_testing.train
+```
+This bypasses DVC: `dvc.lock` is not updated and outputs are not cached.
 
 ## Running tests
 `uv run pytest -v` — run all tests.
