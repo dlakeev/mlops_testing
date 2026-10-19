@@ -50,6 +50,12 @@ def train(params: dict, data_dir: Path, models_dir: Path, metrics_dir: Path) -> 
         pipe = build_pipeline(params["pipeline"], params["seed"])
         pipe.fit(X_train, y_train)
 
+        mlflow.sklearn.log_model(
+            pipe,
+            name="model",  # artifact name inside the run
+            input_example=X_train.head(5),  # signature is inferred from this example
+        )
+
         models_dir.mkdir(parents=True, exist_ok=True)
         joblib.dump(pipe, models_dir / "model.joblib")
 

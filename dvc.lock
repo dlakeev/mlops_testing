@@ -33,14 +33,15 @@ stages:
       size: 97196
     - path: src/mlops_testing/train.py
       hash: md5
-      md5: 3be10065f11010a7c605f908b62a6822
-      size: 2813
+      md5: 65cd6b5ddc93a99afd76c52cdf222a7f
+      size: 3020
     params:
       params.yaml:
         pipeline:
           scaler__with_mean: true
           scaler__with_std: true
           model__max_iter: 100
+          model__C: 1.0
         seed: 42
     outs:
     - path: metrics/metrics.json
