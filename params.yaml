@@ -9,3 +9,4 @@ pipeline:
   scaler__with_mean: true
   scaler__with_std: true
   model__max_iter: 100
+  model__C: 1.0
