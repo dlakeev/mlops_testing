@@ -1,0 +1,27 @@
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
+
+repos:
+  # Generic file checks maintained by the pre-commit team
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace      # remove spaces at line ends
+      - id: end-of-file-fixer        # ensure files end with a newline
+      - id: check-yaml               # validate YAML syntax (params.yaml!)
+      - id: check-added-large-files  # block big files (e.g. models) from git
+
+  # Ruff: automatic checks
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.1
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
