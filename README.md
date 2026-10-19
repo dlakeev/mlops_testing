@@ -10,7 +10,8 @@
 The pipeline is managed by [DVC](https://dvc.org/) and described in `dvc.yaml`:
 `prepare` (load and split data) → `train` (train the model and compute metrics).
 
-Run the whole pipeline from the project root:
+Start the MLflow tracking server first (see [Experiment tracking](#experiment-tracking-mlflow)),
+then run the whole pipeline from the project root:
 ```bash
 uv run dvc repro
 ```
@@ -42,6 +43,26 @@ and the files themselves live in a DVC remote (see `.dvc/config`).
 - `uv run dvc pull` — download the versions referenced by the current `dvc.lock`.
 
 The current remote is a local folder (`C:\dvc-storage`), so it works only on this machine.
+
+## Experiment tracking (MLflow)
+Every `train` run is logged to [MLflow](https://mlflow.org/) in the `breast-cancer` experiment:
+all parameters from `params.yaml` (flattened, e.g. `pipeline.model__max_iter`) and test metrics.
+
+1. Start the tracking server in a separate terminal (it runs until you stop it):
+```bash
+   uv run mlflow server --host 127.0.0.1 --port 5000 --backend-store-uri sqlite:///mlflow.db
+```
+2. In the terminal where you run the pipeline, point the client to the server:
+```powershell
+   $env:MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"   # PowerShell
+```
+```bash
+   export MLFLOW_TRACKING_URI=http://127.0.0.1:5000      # bash
+```
+3. Open the UI at http://127.0.0.1:5000 to browse and compare runs.
+
+The tracking URI is environment configuration, so it is kept out of the code and `params.yaml`.
+MLflow data (`mlflow.db`, `mlartifacts/`) is stored locally and ignored by git.
 
 ## Running tests
 `uv run pytest -v` — run all tests.
