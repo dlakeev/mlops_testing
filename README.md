@@ -10,7 +10,8 @@
 The pipeline is managed by [DVC](https://dvc.org/) and described in `dvc.yaml`:
 `prepare` (load and split data) → `train` (train the model and compute metrics).
 
-Run the whole pipeline from the project root:
+Start the MLflow tracking server first (see [Experiment tracking](#experiment-tracking-mlflow)),
+then run the whole pipeline from the project root:
 ```bash
 uv run dvc repro
 ```
@@ -43,8 +44,43 @@ and the files themselves live in a DVC remote (see `.dvc/config`).
 
 The current remote is a local folder (`C:\dvc-storage`), so it works only on this machine.
 
+## Experiment tracking (MLflow)
+Every `train` run is logged to [MLflow](https://mlflow.org/) in the `breast-cancer` experiment:
+- all parameters from `params.yaml` (flattened, e.g. `pipeline.model__max_iter`);
+- test metrics;
+- the trained model as an MLflow Model (`model` artifact) with its signature,
+  input example and Python requirements, so it can be loaded without knowing its internals.
+
+1. Start the tracking server in a separate terminal (it runs until you stop it):
+```bash
+   uv run mlflow server --host 127.0.0.1 --port 5000 --backend-store-uri sqlite:///mlflow.db
+```
+2. In the terminal where you run the pipeline, point the client to the server:
+```powershell
+   $env:MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"   # PowerShell
+```
+```bash
+   export MLFLOW_TRACKING_URI=http://127.0.0.1:5000      # bash
+```
+3. Open the UI at http://127.0.0.1:5000 to browse and compare runs.
+
+The tracking URI is environment configuration, so it is kept out of the code and `params.yaml`.
+MLflow data (`mlflow.db`, `mlartifacts/`) is stored locally and ignored by git.
+
+### Running experiments
+Try other hyperparameters without editing `params.yaml` (each run is also logged to MLflow):
+```bash
+uv run dvc exp run -S pipeline.model__C=0.1
+uv run dvc exp show          # table of experiments with params and metrics
+uv run dvc exp remove --all  # delete experiments when you no longer need them
+```
+To keep a result, set the value in `params.yaml`, run `uv run dvc repro` and commit.
+
 ## Running tests
 `uv run pytest -v` — run all tests.
+
+Tests do not need the MLflow server: each test logs to a throwaway SQLite DB
+in a temporary directory (see `tests/conftest.py`).
 
 ## Linting and formatting (ruff)
 - `uv run ruff check` — check the code for lint errors.

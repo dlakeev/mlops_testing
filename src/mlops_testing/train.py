@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 import joblib
+import mlflow
 import pandas as pd
 import yaml
 from sklearn.linear_model import LogisticRegression
@@ -35,24 +36,54 @@ def evaluate(model: Pipeline, X: pd.DataFrame, y: pd.Series) -> dict[str, float]
 
 def train(params: dict, data_dir: Path, models_dir: Path, metrics_dir: Path) -> None:
     """Train on data_dir/train.csv, save the model and test metrics."""
+    mlflow.set_experiment("breast-cancer")
+
     train_df = pd.read_csv(data_dir / "train.csv")
     test_df = pd.read_csv(data_dir / "test.csv")
 
     X_train, y_train = train_df.drop(columns="target"), train_df["target"]
     X_test, y_test = test_df.drop(columns="target"), test_df["target"]
 
-    pipe = build_pipeline(params["pipeline"], params["seed"])
-    pipe.fit(X_train, y_train)
+    with mlflow.start_run():
+        mlflow.log_params(_flatten_dict(params))
 
-    models_dir.mkdir(parents=True, exist_ok=True)
-    joblib.dump(pipe, models_dir / "model.joblib")
+        pipe = build_pipeline(params["pipeline"], params["seed"])
+        pipe.fit(X_train, y_train)
 
-    eval_metrics = evaluate(pipe, X_test, y_test)
+        mlflow.sklearn.log_model(
+            pipe,
+            name="model",  # artifact name inside the run
+            input_example=X_train.head(5),  # signature is inferred from this example
+            registered_model_name="breast-cancer",
+        )
 
-    metrics_dir.mkdir(parents=True, exist_ok=True)
-    with open(metrics_dir / "metrics.json", "w", encoding="utf-8", newline="\n") as f:
-        json.dump(eval_metrics, f, indent=2)
-        f.write("\n")
+        models_dir.mkdir(parents=True, exist_ok=True)
+        joblib.dump(pipe, models_dir / "model.joblib")
+
+        eval_metrics = evaluate(pipe, X_test, y_test)
+
+        mlflow.log_metrics(eval_metrics)
+
+        metrics_dir.mkdir(parents=True, exist_ok=True)
+        with open(
+            metrics_dir / "metrics.json", "w", encoding="utf-8", newline="\n"
+        ) as f:
+            json.dump(eval_metrics, f, indent=2)
+            f.write("\n")
+
+
+def _flatten_dict(d: dict, parent_key: str = "", sep: str = ".") -> dict:
+    """Flatten dict into a single level with keys joined by sep.
+    Example: {"split": {"test_size": 0.2}} -> {"split.test_size": 0.2}
+    """
+    items = {}
+    for key, value in d.items():
+        new_key = f"{parent_key}{sep}{key}" if parent_key else key
+        if isinstance(value, dict):
+            items.update(_flatten_dict(value, new_key, sep))
+        else:
+            items[new_key] = value
+    return items
 
 
 if __name__ == "__main__":
