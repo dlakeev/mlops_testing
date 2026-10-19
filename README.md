@@ -2,7 +2,8 @@
 
 ## Setup
 1. `uv sync` — install all dependencies.
-2. `uv run pre-commit install` — install git hooks (once after cloning).
+2. `uv run dvc pull` — download data and model from DVC remote storage.
+3. `uv run pre-commit install` — install git hooks (once after cloning).
    Hooks live in `.git/hooks/`, which is not versioned, so every clone needs this step.
 
 ## Running the pipeline
@@ -32,6 +33,15 @@ uv run python -m mlops_testing.prepare
 uv run python -m mlops_testing.train
 ```
 This bypasses DVC: `dvc.lock` is not updated and outputs are not cached.
+
+## Data storage (DVC remote)
+Data and models are not stored in git: git keeps only their hashes in `dvc.lock`,
+and the files themselves live in a DVC remote (see `.dvc/config`).
+
+- `uv run dvc push` — upload data and model to the remote.
+- `uv run dvc pull` — download the versions referenced by the current `dvc.lock`.
+
+The current remote is a local folder (`C:\dvc-storage`), so it works only on this machine.
 
 ## Running tests
 `uv run pytest -v` — run all tests.
@@ -74,4 +84,9 @@ stage them again with `git add` and repeat the commit.
 ```bash
    git push -u origin <branch-name>
 ```
-5. Open a pull request into `main`.
+5. If the pipeline outputs changed, upload them to DVC remote storage:
+```bash
+   uv run dvc push
+```
+   Otherwise others will get `dvc.lock` with hashes but no files behind them.
+6. Open a pull request into `main`.
