@@ -10,48 +10,51 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 
-def train():
-    # Load parameters from yaml file
-    with open("./params.yaml", encoding="utf-8") as f:
-        params = yaml.safe_load(f)
-
-    # Load and split data
-    train_df = pd.read_csv("data/train.csv")
-    test_df = pd.read_csv("data/test.csv")
-
-    X_train, y_train = train_df.drop(columns="target"), train_df["target"]
-    X_test, y_test = test_df.drop(columns="target"), test_df["target"]
-
-    # Init pipeline
+def build_pipeline(pipeline_params: dict, seed: int) -> Pipeline:
+    """Create an unfitted scaler + logistic regression pipeline."""
     pipe = Pipeline(
         steps=[
             ("scaler", StandardScaler()),
             ("model", LogisticRegression()),
         ]
     )
-    pipe.set_params(model__random_state=params["seed"], **params["pipeline"])
+    pipe.set_params(model__random_state=seed, **pipeline_params)
+    return pipe
+
+
+def evaluate(model: Pipeline, X: pd.DataFrame, y: pd.Series) -> dict[str, float]:
+    """Compute classification metrics for binary classification."""
+    y_pred = model.predict(X)
+    y_pred_proba = model.predict_proba(X)[:, 1]
+    return {
+        "accuracy": accuracy_score(y, y_pred),
+        "f1_score": f1_score(y, y_pred),
+        "roc_auc": roc_auc_score(y, y_pred_proba),
+    }
+
+
+def train(params: dict, data_dir: Path, models_dir: Path, metrics_dir: Path) -> None:
+    """Train on data_dir/train.csv, save the model and test metrics."""
+    train_df = pd.read_csv(data_dir / "train.csv")
+    test_df = pd.read_csv(data_dir / "test.csv")
+
+    X_train, y_train = train_df.drop(columns="target"), train_df["target"]
+    X_test, y_test = test_df.drop(columns="target"), test_df["target"]
+
+    pipe = build_pipeline(params["pipeline"], params["seed"])
     pipe.fit(X_train, y_train)
 
-    models_dir = Path("models")
     models_dir.mkdir(parents=True, exist_ok=True)
     joblib.dump(pipe, models_dir / "model.joblib")
 
-    # Calculate metrics
-    y_pred = pipe.predict(X_test)
-    y_pred_proba = pipe.predict_proba(X_test)[:, 1]
-    accuracy, f1, roc_auc = (
-        accuracy_score(y_test, y_pred),
-        f1_score(y_test, y_pred),
-        roc_auc_score(y_test, y_pred_proba),
-    )
+    eval_metrics = evaluate(pipe, X_test, y_test)
 
-    # Save metrics
-    metrics = {"accuracy": accuracy, "f1_score": f1, "roc_auc": roc_auc}
-    metrics_dir = Path("metrics")
     metrics_dir.mkdir(parents=True, exist_ok=True)
     with open(metrics_dir / "metrics.json", "w") as f:
-        json.dump(metrics, f, indent=2)
+        json.dump(eval_metrics, f, indent=2)
 
 
 if __name__ == "__main__":
-    train()
+    with open("params.yaml", encoding="utf-8") as f:
+        params = yaml.safe_load(f)
+    train(params, Path("data"), Path("models"), Path("metrics"))
