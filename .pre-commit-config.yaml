@@ -13,6 +13,7 @@ repos:
       - id: end-of-file-fixer        # ensure files end with a newline
       - id: check-yaml               # validate YAML syntax (params.yaml!)
       - id: check-added-large-files  # block big files (e.g. models) from git
+      - id: detect-private-key       # block committing private keys
 
   # Ruff: automatic checks
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -27,3 +28,8 @@ repos:
     hooks:
       - id: conventional-pre-commit
         stages: [commit-msg]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
