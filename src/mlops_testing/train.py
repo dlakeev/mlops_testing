@@ -50,8 +50,9 @@ def train(params: dict, data_dir: Path, models_dir: Path, metrics_dir: Path) -> 
     eval_metrics = evaluate(pipe, X_test, y_test)
 
     metrics_dir.mkdir(parents=True, exist_ok=True)
-    with open(metrics_dir / "metrics.json", "w") as f:
+    with open(metrics_dir / "metrics.json", "w", encoding="utf-8", newline="\n") as f:
         json.dump(eval_metrics, f, indent=2)
+        f.write("\n")
 
 
 if __name__ == "__main__":
