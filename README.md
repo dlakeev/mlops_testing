@@ -22,7 +22,8 @@ From the project root:
 Hooks run automatically on every `git commit` and check only staged files:
 - ruff lint and format;
 - file hygiene: trailing whitespace, final newline, YAML syntax, large files;
-- commit message format (Conventional Commits).
+- commit message format (Conventional Commits);
+- secrets in commit.
 
 Run all hooks on the whole project manually:
 `uv run pre-commit run --all-files`
