@@ -54,6 +54,7 @@ def train(params: dict, data_dir: Path, models_dir: Path, metrics_dir: Path) -> 
             pipe,
             name="model",  # artifact name inside the run
             input_example=X_train.head(5),  # signature is inferred from this example
+            registered_model_name="breast-cancer",
         )
 
         models_dir.mkdir(parents=True, exist_ok=True)
