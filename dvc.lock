@@ -33,8 +33,8 @@ stages:
       size: 97196
     - path: src/mlops_testing/train.py
       hash: md5
-      md5: 6a139f05f23005ab779840ffd14b9095
-      size: 2078
+      md5: 8715bf45accb03c710e9119f17b14f4a
+      size: 2809
     params:
       params.yaml:
         pipeline:
